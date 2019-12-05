@@ -7,6 +7,7 @@
 #include <strings.h>
 #include <time.h>
 #include <ctype.h>
+#include <errno.h>
 #include "CPUSched.h"
 #include "pcb.h"
 #include "queue.h"

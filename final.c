@@ -210,12 +210,32 @@ int main(int argc, char *argv[])
 
     pcb pcbs[500];
     makePCBs (pcbs, processes, numProcesses);
-    
-    for (int i=0; i<numProcesses; i++)
+
+    TYPE pagerType = setType(pager);
+    int maxPages = findMaxPages(memorySize, pagesize);
+
+    printf ("max pages: %d\n", maxPages);
+
+    ENTRY entries[maxPages];
+    FRAMEINFO frames[numFrames];
+
+    for (int i=0; i<maxPages; i++)
+    {
+        initializeEntry(&entries[i]);    }
+
+    for (int i=0; i<numFrames; i++)
+    {
+        initializeFrame(&frames[i]);
+    }
+
+    int pageFaults = lru(numFrames, frames);
+    printf ("page faults: %d\n", pageFaults);
+
+    /*for (int i=0; i<numProcesses; i++)
     {
         printf ("PID: %s\nArrival: %d\nBurst: %d\nPriority: %d\n", processes[i].PID, processes[i].arrival, processes[i].burst, processes[i].priority);
         printf ("name: %s\nArrival: %d\nBurst: %d\nPriority: %d\n", pcbs[i].name, pcbs[i].arrival, pcbs[i].burst, pcbs[i].priority);
-    }
+    }*/
 
     return 0;
 }
@@ -229,6 +249,6 @@ void makePCBs (pcb pcbs[], PROCESS processes[], int numProcesses)
         pcbs[i].burst = processes[i].burst;
         pcbs[i].priority = processes[i].priority;
         pcbs[i].runTime = 0;
-        pcbs[i].runTime = 0;
+        pcbs[i].waitTime = 0;
     }
 }

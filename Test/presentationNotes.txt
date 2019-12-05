@@ -1,0 +1,37 @@
+
+All Comments Received:
+CPUSched.h: //Header file for CPUsched
+pcb.h: // A structure to hold data of processes in a linked list
+queue.h: none
+p.h: /// TYPEDEFS, /// INCLUDES
+
+Total: 4,
+Useful Total: 0
+
+First Attempts:
+We initially tried to compile the .o files with a dummy main(uwu) just to make sure ther were no errors. Immediately, we got an error relating to multiple main functions. After removing a int main () prototype, the error disappeared, but was replaced by a big scary error about .rodata and incorrect locations. After consulting Dr. Moorman, it was discovered that the files had to be compiled on the lab machines rather than his personal machine. Once that was solved, the actual testing began.
+
+We tested the most useful-looking functions first, so we ignored ones like "readFile" and "readFromFile". We started with the CPUSched functions, because p.h file did not look promising (@group1).
+
+CPUSched:
+Simulate Test:
+Calling simulate was straight forward. Send in a BOOL for each item to simulate and the count. Outputs to a file called processes.in in the format of "PID Arrival Burst Priority". 
+Hardest part was noticing the outfile, because it did not give any indication of success
+
+Queue Test:
+Started out by making a Push loop and printing out the item recently pushed. It seemed to work correctly, so we moved on to Pop. Pop immediately SEG Faulted. After trying different usages of Pop over a period of about 30 minutes before consulting Dr. Moorman. He spent ten minutes of rage trying to figure it out before consulting the source code. When the problem was discovered, we were informed of the need to initialize the Queue with a NULL head and tail.
+Fortunately, push_fcfs,push_sjf,and push_pri seem to be called from within push, so we don't need to worry about those so much (we don't think). Although, FCFS does not seem to work as sjf and pri do.
+
+CPUSched conclusion:
+We think we're going to have to figure out where and when to use their queue to make the CPUSched part, as it appears that most of group 3's CPUSched stuff happens in their main. Once we get going on that we will get to isComplete, pushNewArrivals, and incrementWaitTime, which all seem fairly straight-forward in their function.
+
+Pager:
+Only has one file, p.h. Not very easy understand and implement in our own program.
+
+findMaxPages: works fine, easy to figure out. Returns the max number of pages based on input memory and pageSize.
+
+initializeEntry & initializeFrame: we figured out that we have to initialize each FRAMEINFO and ENTRY structure by calling this function on them individually, done by running through an array in a for loop.
+
+setType: also easy to figure out, changes a TYPE struct to the appropriate value based on a string. We're not sure yet if it's case sensitive.
+
+whatPageAmIOn: we know what it does, it returns what page a certain memory location is on. It also prints it out to the screen.
