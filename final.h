@@ -23,4 +23,12 @@ typedef struct {
 
 void makePCBs (pcb pcbs[], PROCESS processes[], int numProcesses);
 
+void initializePaging(ENTRY entries[],FRAMEINFO frames[], int maxPages, int numFrames);
+
+double CPUScheduling(char typeString[], int quanta, BOOL preemptive, pcb pcbs[], int numProcesses);
+
+int setSchedulerType(char typeString[]);
+
+double calcAverageWait (queue_t* queue, int numProcesses);
+
 #endif

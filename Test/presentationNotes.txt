@@ -16,7 +16,7 @@ We tested the most useful-looking functions first, so we ignored ones like "read
 CPUSched:
 Simulate Test:
 Calling simulate was straight forward. Send in a BOOL for each item to simulate and the count. Outputs to a file called processes.in in the format of "PID Arrival Burst Priority". 
-Hardest part was noticing the outfile, because it did not give any indication of success
+Hardest part was noticing the outfile, because it did not give any indication of success. However, the final project does not utilize simulation.
 
 Queue Test:
 Started out by making a Push loop and printing out the item recently pushed. It seemed to work correctly, so we moved on to Pop. Pop immediately SEG Faulted. After trying different usages of Pop over a period of about 30 minutes before consulting Dr. Moorman. He spent ten minutes of rage trying to figure it out before consulting the source code. When the problem was discovered, we were informed of the need to initialize the Queue with a NULL head and tail.
@@ -35,3 +35,12 @@ initializeEntry & initializeFrame: we figured out that we have to initialize eac
 setType: also easy to figure out, changes a TYPE struct to the appropriate value based on a string. We're not sure yet if it's case sensitive.
 
 whatPageAmIOn: we know what it does, it returns what page a certain memory location is on. It also prints it out to the screen.
+
+resetValidBits: we think we know what it does, we're not at a point where we need to implement it anyway.
+
+mfu & lru: we were hoping that we could just call mfu or lru with the max number of frames and an array of frames and it would return the number of page faults, easy-peasy. But, it always returns 0. We're not exactly sure what they're for.
+
+Thoughts on p.h:
+While we were working on it, we realized there is no clear spot in which the memory locations are actually used. Turns out, as Dr. Moorman revealed to us, in the readFromFile function, teh parameter "int* fc" refers to a memory location. fc, of course, stands for "file contents".
+
+readFromFile: Takes in a file name and an int array, then returns the number of locations read. Works well for its purpose, but we're not sure how to adapt it to read from a section in the middle of a file. It might not be possible

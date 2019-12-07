@@ -23,17 +23,19 @@ int main (void)
     int numProcesses = 0;
     pcb* testPCB;
     testPCB = readFile("processes.in", &numProcesses);
-    printf("Processes Read: %d\n", numProcesses);
+    printf("Processes Read: %d\n\n", numProcesses);
 
     queue_t queue;
     queue.head = NULL;
     queue.tail = NULL;
+    printf ("Pushing PCBs to Queue\n");
     for (int i=0; i<numProcesses; i++)
     {
-        push(&queue, &testPCB[i], 0);
+        push(&queue, &testPCB[i], SJF);
         //push_sjf(&queue, &testPCB[i]);
-        printf ("Queue: %s\n", queue.head->process->name);
+        printf ("Current Head of Queue: %s\n", queue.head->process->name);
     }
+    printf("\nPopping PCBs (pcb.h struct)\n");
 
     pcb tempPCB;
     for (int i=0; i<numProcesses; i++)
@@ -46,8 +48,7 @@ int main (void)
     FILE* file;
     file = fopen("memory.txt", "r");
     int memoryLocation[100];
-    int result = whatPageAmIOn(700, 512);
-    printf ("%d\n", result);
+
 
     int thisResult = readFromFile(file, memoryLocation);
     printf ("MemLoc count %d\n", thisResult);
@@ -56,7 +57,11 @@ int main (void)
         printf ("location: %d\n", memoryLocation[i]);
     }
     
-    printf ("Location of file %d\n", file);
+
+    printf ("\nwhatPageAmIOn:");
+    int result = whatPageAmIOn(700, 512);
+    printf ("\n");
+    //printf ("Location of file %d\n", file); //Wanted to see if it was possible to start reading in the middle of the file. Unclear results (for reading the memory locations instead of making a new function)
 
     return 0;
 }

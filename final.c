@@ -22,35 +22,34 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[i], "-infile") == FALSE)
         {
-            if (argc <= i+1)
+            if (argc <= i + 1)
             {
-	            printf ("ERROR: MISSING PARAMETER.\n");
-	            return 0;
-            }       
-            strcpy (infile, argv[i+1]);
-        }        
+                printf("ERROR: MISSING PARAMETER.\n");
+                return 0;
+            }
+            strcpy(infile, argv[i + 1]);
+        }
         if (strcmp(argv[i], "-outfile") == FALSE)
         {
-            if (argc <= i+1)
+            if (argc <= i + 1)
             {
-	            printf ("ERROR: MISSING PARAMETER.\n");
-	            return 0;
-            }       
-            strcpy (outfile, argv[i+1]);
+                printf("ERROR: MISSING PARAMETER.\n");
+                return 0;
+            }
+            strcpy(outfile, argv[i + 1]);
         }
         if (strcmp(argv[i], "-scheduler") == FALSE)
         {
-            if (argc <= i+1)
+            if (argc <= i + 1)
             {
-	            printf ("ERROR: MISSING PARAMETER.\n");
-	            return 0;
+                printf("ERROR: MISSING PARAMETER.\n");
+                return 0;
             }
-        
-            strcpy (scheduler, argv[i+1]);
-            if (!((!strcasecmp(argv[i+1], "FCFS")) || (!strcasecmp(argv[i+1], "RR")) || (!strcmp(argv[i+1], "SJF")) || (!strcmp(argv[i+1], "priority"))))
+            strcpy(scheduler, argv[i + 1]);
+            if (!((!strcasecmp(argv[i + 1], "FCFS")) || (!strcasecmp(argv[i + 1], "RR")) || (!strcmp(argv[i + 1], "SJF")) || (!strcmp(argv[i + 1], "priority"))))
             {
-	            printf ("ERROR: INVALID SCHEDULER TYPE. VALID TYPES INCLUDE: FCFS, RR, SJF, priority\n");
-	            return 0;
+                printf("ERROR: INVALID SCHEDULER TYPE. VALID TYPES INCLUDE: FCFS, RR, SJF, priority\n");
+                return 0;
             }
         }
         if (strcmp(argv[i], "-quanta") == FALSE)
@@ -82,20 +81,21 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[i], "-preemptive") == FALSE)
         {
+            preemptive = TRUE;
         }
         if (strcmp(argv[i], "-pager") == FALSE)
         {
-            if (argc <= i+1)
+            if (argc <= i + 1)
             {
-	            printf ("ERROR: MISSING PARAMETER.\n");
-	            return 0;
+                printf("ERROR: MISSING PARAMETER.\n");
+                return 0;
             }
-        
-            strcpy (pager, argv[i+1]);
-            if (!((!strcasecmp(argv[i+1], "FIFO")) || (!strcasecmp(argv[i+1], "LRU")) || (!strcmp(argv[i+1], "MFU")) || (!strcmp(argv[i+1], "RANDOM"))))
+
+            strcpy(pager, argv[i + 1]);
+            if (!((!strcasecmp(argv[i + 1], "FIFO")) || (!strcasecmp(argv[i + 1], "LRU")) || (!strcmp(argv[i + 1], "MFU")) || (!strcmp(argv[i + 1], "RANDOM"))))
             {
-	            printf ("ERROR: INVALID PAGER TYPE. VALID TYPES INCLUDE: FIFO, LRU, MFU, RANDOM\n");
-	            return 0;
+                printf("ERROR: INVALID PAGER TYPE. VALID TYPES INCLUDE: FIFO, LRU, MFU, RANDOM\n");
+                return 0;
             }
         }
         if (strcmp(argv[i], "-frames") == FALSE)
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
             int j;
             const int len = strlen(argv[i + 1]);
             char numFramesStr[len];
-            strcpy (numFramesStr, argv[i + 1]);
+            strcpy(numFramesStr, argv[i + 1]);
             for (j = 0; j < len; j++)
             {
                 if (!isdigit(numFramesStr[j]))
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
             int j;
             const int len = strlen(argv[i + 1]);
             char memorySizeStr[len];
-            strcpy (memorySizeStr, argv[i + 1]);
+            strcpy(memorySizeStr, argv[i + 1]);
             for (j = 0; j < len; j++)
             {
                 if (!isdigit(memorySizeStr[j]))
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
             int j;
             const int len = strlen(argv[i + 1]);
             char pagesizeStr[len];
-            strcpy (pagesizeStr, argv[i + 1]);
+            strcpy(pagesizeStr, argv[i + 1]);
             for (j = 0; j < len; j++)
             {
                 if (!isdigit(pagesizeStr[j]))
@@ -178,27 +178,27 @@ int main(int argc, char *argv[])
         }
     }
 
-    FILE* file;
-    int c, numProcesses=0;
+    FILE *file;
+    int c, numProcesses = 0;
     BOOL textFound = FALSE;
-    char* processID;
+    char *processID;
     PROCESS processes[500];
     PROCESS process;
-    file = fopen (infile, "r");
-    if (file){
-        while (fscanf(file, "%d", &c)!= EOF)
+    file = fopen(infile, "r");
+    if (file)
+    {
+        while (fscanf(file, "%s", process.PID) != EOF)
         {
             textFound = TRUE;
-            fscanf(file, "%s", process.PID);
             fscanf(file, "%d", &process.arrival);
             fscanf(file, "%d", &process.burst);
             fscanf(file, "%d", &process.priority);
-            for (int i=0; i < process.burst; i++)
+            for (int i = 0; i < process.burst; i++)
             {
                 fscanf(file, "%d", &process.memLocations[i]);
             }
-            processes[numProcesses] = process;
             numProcesses++;
+            processes[numProcesses - 1] = process;
         }
     }
     fclose(file);
@@ -206,31 +206,23 @@ int main(int argc, char *argv[])
     if (!textFound)
     {
         printf("ERROR: INPUT FILE CONTAINS NO TEXT.\n");
+        return 0;
     }
 
-    pcb pcbs[500];
-    makePCBs (pcbs, processes, numProcesses);
+    pcb *pcbs;
+    pcbs = malloc(numProcesses * sizeof(pcb));
+    makePCBs(pcbs, processes, numProcesses);
+    //Do CPU Scheduling based on input parameters
+    double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
+    printf ("Average Wait Time: %f\n", avgWaitTime);
 
     TYPE pagerType = setType(pager);
     int maxPages = findMaxPages(memorySize, pagesize);
 
-    printf ("max pages: %d\n", maxPages);
-
+    //Initialize arrays of ENTRYs and FRAMEINFOs
     ENTRY entries[maxPages];
     FRAMEINFO frames[numFrames];
-
-    for (int i=0; i<maxPages; i++)
-    {
-        initializeEntry(&entries[i]);    }
-
-    for (int i=0; i<numFrames; i++)
-    {
-        initializeFrame(&frames[i]);
-    }
-
-    int pageFaults = lru(numFrames, frames);
-    printf ("page faults: %d\n", pageFaults);
-
+    initializePaging(entries, frames, maxPages, numFrames);
     /*for (int i=0; i<numProcesses; i++)
     {
         printf ("PID: %s\nArrival: %d\nBurst: %d\nPriority: %d\n", processes[i].PID, processes[i].arrival, processes[i].burst, processes[i].priority);
@@ -240,15 +232,93 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void makePCBs (pcb pcbs[], PROCESS processes[], int numProcesses)
+void makePCBs(pcb pcbs[], PROCESS processes[], int numProcesses)
 {
-    for (int i=0; i<numProcesses; i++)
+    for (int i = 0; i < numProcesses; i++)
     {
-        pcbs[i].name = processes[i].PID;
+
+        printf("PID: %s Arrival: %d\n", processes[i].PID, processes[i].arrival);
+
+        pcbs[i].name = malloc(4 * sizeof(char));
+        strcpy(pcbs[i].name, processes[i].PID);
         pcbs[i].arrival = processes[i].arrival;
         pcbs[i].burst = processes[i].burst;
         pcbs[i].priority = processes[i].priority;
         pcbs[i].runTime = 0;
         pcbs[i].waitTime = 0;
+    }
+}
+
+double CPUScheduling(char typeString[], int quanta, BOOL preemptive, pcb pcbs[], int numProcesses)
+{
+    int type = setSchedulerType(typeString);
+    //make a queue, initializing head and tail to null
+    queue_t queue;
+    queue.head = NULL;
+    queue.tail = NULL;
+    printf("Pushing PCBs to Queue\n");
+    for (int i = 0; i < numProcesses; i++)
+    {
+        push(&queue, &pcbs[i], type);
+        printf("Current Head of Queue: %s\n", queue.head->process->name);
+    }
+    pcb tempPCB;
+    double waitTime = calcAverageWait(&queue, numProcesses);
+    return waitTime;
+}
+
+int setSchedulerType(char typeString[])
+{
+    if (strcmp(typeString, "FCFS") == 0)
+    {
+        return 0;
+    }
+    else if (strcmp(typeString, "RR") == 0)
+    {
+        return 1;
+    }
+    else if (strcmp(typeString, "SJF") == 0)
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+
+//from group2 CPUScheduler, queue.c
+double calcAverageWait(queue_t* queue, int numProcesses)
+{
+    int burstSum = 0, indvWait;
+    double avgWait, waitSum = 0, count = 0;
+    pcb tempPCB;
+    for (int i = 0; i < numProcesses; i++)
+    {
+        tempPCB = *pop(queue);
+        indvWait = burstSum - tempPCB.arrival;
+        //a condition to compensate for idle time that could arise in the execution of the queue
+        if (indvWait < 0)
+        {
+            indvWait = 0;
+            burstSum = burstSum + (tempPCB.arrival - burstSum);
+        }
+        burstSum = burstSum + tempPCB.burst;
+        waitSum = waitSum + indvWait;
+        count++;
+    }
+    avgWait = waitSum / count;
+    return avgWait;
+}
+
+void initializePaging(ENTRY entries[], FRAMEINFO frames[], int maxPages, int numFrames)
+{
+    for (int i = 0; i < maxPages; i++)
+    {
+        initializeEntry(&entries[i]);
+    }
+    for (int i = 0; i < numFrames; i++)
+    {
+        initializeFrame(&frames[i]);
     }
 }
