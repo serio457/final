@@ -196,6 +196,11 @@ int main(int argc, char *argv[])
             for (int i = 0; i < process.burst; i++)
             {
                 fscanf(file, "%d", &process.memLocations[i]);
+                if(process.memLocations[i] > memorySize || process.memLocations[i] < 0)
+                {
+                    printf("ERROR: INVALID MEMORY LOCATION %d IN PROCESS %s\n", process.memLocations[i], process.PID);
+                    return 0;
+                }
             }
             numProcesses++;
             processes[numProcesses - 1] = process;
@@ -213,16 +218,23 @@ int main(int argc, char *argv[])
     pcbs = malloc(numProcesses * sizeof(pcb));
     makePCBs(pcbs, processes, numProcesses);
     //Do CPU Scheduling based on input parameters
-    double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
-    printf ("Average Wait Time: %f\n", avgWaitTime);
+    printf("\nCPU SCHEDULING\n");
+    if (strcmp(scheduler, "FCFS") == 0)
+    {
+        double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
+        printf("Average Wait Time: %f\n", avgWaitTime);
+    }
+    else
+    {
+        printSchedulerTypeErrors(scheduler);
+    }
 
-    TYPE pagerType = setType(pager);
-    int maxPages = findMaxPages(memorySize, pagesize);
+    //Do paging
+    printf("\nPAGING\nPaging for number of page faults could not be implemented. Known pager info is:\n");
+    paging(processes, numProcesses, numFrames, pagesize, memorySize, pager);
 
-    //Initialize arrays of ENTRYs and FRAMEINFOs
-    ENTRY entries[maxPages];
-    FRAMEINFO frames[numFrames];
-    initializePaging(entries, frames, maxPages, numFrames);
+    
+    
     /*for (int i=0; i<numProcesses; i++)
     {
         printf ("PID: %s\nArrival: %d\nBurst: %d\nPriority: %d\n", processes[i].PID, processes[i].arrival, processes[i].burst, processes[i].priority);
@@ -262,7 +274,7 @@ double CPUScheduling(char typeString[], int quanta, BOOL preemptive, pcb pcbs[],
         push(&queue, &pcbs[i], type);
         printf("Current Head of Queue: %s\n", queue.head->process->name);
     }
-    pcb tempPCB;
+    //pcb tempPCB;
     double waitTime = calcAverageWait(&queue, numProcesses);
     return waitTime;
 }
@@ -288,7 +300,7 @@ int setSchedulerType(char typeString[])
 }
 
 //from group2 CPUScheduler, queue.c
-double calcAverageWait(queue_t* queue, int numProcesses)
+double calcAverageWait(queue_t *queue, int numProcesses)
 {
     int burstSum = 0, indvWait;
     double avgWait, waitSum = 0, count = 0;
@@ -311,6 +323,44 @@ double calcAverageWait(queue_t* queue, int numProcesses)
     return avgWait;
 }
 
+void printSchedulerTypeErrors(char typeString[])
+{
+    printf("Scheduler type %s could not be implemented.\n", typeString);
+    /*int type = setSchedulerType(typeString);
+    if(type == 1)
+    {
+        printf("SJF")
+    }
+    else if(type == 2)
+    {
+
+    }
+    else(type == 3)
+    {
+
+    }*/
+}
+
+void paging(PROCESS processes[], int numProcesses, int numFrames, int pagesize, int memorySize, char typeString[])
+{
+    TYPE pagerType = setType(typeString);
+    int maxPages = findMaxPages(memorySize, pagesize);
+    int temp;
+    ENTRY entries[maxPages];
+    FRAMEINFO frames[numFrames];
+    printf ("Maximum number of pages: %d\n", maxPages);
+    initializePaging(entries, frames, maxPages, numFrames);
+    for (int i = 0; i < numProcesses; i++)
+    {
+        printf("\nMEMORY LOCATIONS FOR PROCESS %s:", processes[i].PID);
+        for (int j = 0; j < processes[i].burst; j++)
+        {
+            temp = whatPageAmIOn(processes[i].memLocations[j], pagesize);
+        }
+    }
+}
+
+
 void initializePaging(ENTRY entries[], FRAMEINFO frames[], int maxPages, int numFrames)
 {
     for (int i = 0; i < maxPages; i++)
@@ -322,3 +372,4 @@ void initializePaging(ENTRY entries[], FRAMEINFO frames[], int maxPages, int num
         initializeFrame(&frames[i]);
     }
 }
+
