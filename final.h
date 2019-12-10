@@ -31,6 +31,18 @@ void makePCBs (pcb pcbs[], PROCESS processes[], int numProcesses);
 //Returns the average wait time of the scheduled processes as a double.
 double CPUScheduling(char typeString[], int quanta, BOOL preemptive, pcb pcbs[], int numProcesses);
 
+//initializes the head and tail of the queue to NULL 
+void initQueue(queue_t* queue);
+
+//increments the waitTime of all processes in a queue
+//used to increment the time in the ready queue
+void incWaitTime(queue_t *queue);
+
+//prints the passed queue from tail to head
+//prints in this order because that is the order that the items will pop
+void printQInOrder(queue_t* queue);
+void printQHelper(node_t *node);
+
 //converts the typeString into an defined int (See CPUSched.h). Called within CPUScheduling
 int setSchedulerType(char typeString[]);
 

@@ -36,7 +36,7 @@ int main (void)
         printf ("Current Head of Queue: %s\n", queue.head->process->name);
     }
     printf("\nPopping PCBs (pcb.h struct)\n");
-
+    
     pcb tempPCB;
     for (int i=0; i<numProcesses; i++)
     {
@@ -45,22 +45,22 @@ int main (void)
         printf ("Process %d: %s %d %d %d %d %d\n", i, tempPCB.name, tempPCB.arrival, tempPCB.burst, tempPCB.priority, tempPCB.runTime, tempPCB.waitTime);
     }
 
-    FILE* file;
-    file = fopen("memory.txt", "r");
-    int memoryLocation[100];
+    //FILE* file;
+    //file = fopen("memory.txt", "r");
+    //int memoryLocation[100];
 
 
-    int thisResult = readFromFile(file, memoryLocation);
-    printf ("MemLoc count %d\n", thisResult);
-    for (int i = 0; i < thisResult; i++)
+    //int thisResult = readFromFile(file, memoryLocation);
+    //printf ("MemLoc count %d\n", thisResult);
+    //for (int i = 0; i < thisResult; i++)
     {
-        printf ("location: %d\n", memoryLocation[i]);
+        //printf ("location: %d\n", memoryLocation[i]);
     }
     
 
-    printf ("\nwhatPageAmIOn:");
-    int result = whatPageAmIOn(700, 512);
-    printf ("\n");
+    //printf ("\nwhatPageAmIOn:");
+    //int result = whatPageAmIOn(700, 512);
+    //printf ("\n");
     //printf ("Location of file %d\n", file); //Wanted to see if it was possible to start reading in the middle of the file. Unclear results (for reading the memory locations instead of making a new function)
 
     return 0;

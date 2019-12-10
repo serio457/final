@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     char scheduler[10] = "FCFS";
     int quanta = 10;
     BOOL preemptive = FALSE;
-    char infile[100] = "infile.txt";
+    char infile[100] = "processes.in";
     char outfile[100] = "processes.out";
     char pager[10] = "FIFO";
     int numFrames = 3;
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
             for (int i = 0; i < process.burst; i++)
             {
                 fscanf(file, "%d", &process.memLocations[i]);
-                if(process.memLocations[i] > memorySize || process.memLocations[i] < 0)
+                if (process.memLocations[i] > memorySize || process.memLocations[i] < 0)
                 {
                     printf("ERROR: INVALID MEMORY LOCATION %d IN PROCESS %s\n", process.memLocations[i], process.PID);
                     return 0;
@@ -220,30 +220,19 @@ int main(int argc, char *argv[])
     pcbs = malloc(numProcesses * sizeof(pcb));
     makePCBs(pcbs, processes, numProcesses);
 
-    //ATTEMPTED IMPLEMENTATION OF PRIORITY SCHEDULING
-
-    //Could not get priority or SJF to work. This is the closest we got,
-    //but without any indication of how functions push, push_pri, prush_sjf, and pushNewArrivals
-    //work we can't figure out how to implement them.
-    /*
-    queue_t readyQueue;
-    readyQueue.head = NULL;
-    readyQueue.tail = NULL;
-    for (int CPUTime=0; CPUTime<50; CPUTime++)
-    {
-        for (int i=0; i<numProcesses; i++)
-        {
-            if(pcbs[i].arrival == CPUTime)
-            {
-                push_pri(&readyQueue, &pcbs[i]);
-            }
-        }
-    }
-    */
-
     //Do CPU Scheduling based on input parameters
     printf("\nCPU SCHEDULING\n");
     if (strcmp(scheduler, "FCFS") == 0)
+    {
+        double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
+        printf("Average Wait Time: %f\n", avgWaitTime);
+    }
+    else if (strcmp(scheduler, "priority") == 0)
+    {
+        double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
+        printf("Average Wait Time: %f\n", avgWaitTime);
+    }
+    else if (strcmp(scheduler, "SJF") == 0)
     {
         double avgWaitTime = CPUScheduling(scheduler, quanta, preemptive, pcbs, numProcesses);
         printf("Average Wait Time: %f\n", avgWaitTime);
@@ -257,8 +246,6 @@ int main(int argc, char *argv[])
     printf("\nPAGING\nPaging for number of page faults could not be implemented. Known pager info is:\n");
     paging(processes, numProcesses, numFrames, pagesize, memorySize, pager);
 
-    
-    
     /*for (int i=0; i<numProcesses; i++)
     {
         printf ("PID: %s\nArrival: %d\nBurst: %d\nPriority: %d\n", processes[i].PID, processes[i].arrival, processes[i].burst, processes[i].priority);
@@ -286,20 +273,132 @@ void makePCBs(pcb pcbs[], PROCESS processes[], int numProcesses)
 
 double CPUScheduling(char typeString[], int quanta, BOOL preemptive, pcb pcbs[], int numProcesses)
 {
+    int processesRemaining = numProcesses;
     int type = setSchedulerType(typeString);
-    //make a queue, initializing head and tail to null
-    queue_t queue;
-    queue.head = NULL;
-    queue.tail = NULL;
-    printf("Pushing PCBs to Queue\n");
+    double avgWaitTime = 0, totalWaitTime = 0;
+    BOOL pushed = FALSE;
+    BOOL activeProcess = FALSE;
+    BOOL allScheduled = FALSE;
+    pcb *runningProcess;
+
+    //queue to hold all processes while they wait for their arrival time
+    queue_t incomingQ;
+    initQueue(&incomingQ);
+
+    //queue to hold processes waiting to run
+    queue_t readyQ;
+    initQueue(&readyQ);
+
+    //queue to calculate average weight time
+    queue_t runningQ;
+    initQueue(&runningQ);
+
     for (int i = 0; i < numProcesses; i++)
     {
-        push(&queue, &pcbs[i], type);
-        printf("Current Head of Queue: %s\n", queue.head->process->name);
+        push(&incomingQ, &pcbs[i], FCFS); //get pcbs in the queue to prepare for running
     }
-    //pcb tempPCB;
-    double waitTime = calcAverageWait(&queue, numProcesses);
-    return waitTime;
+    if (type != FCFS)
+    {
+        for (int CPUTime = 0; processesRemaining > 0; CPUTime++)
+        {
+            //push all valid processes into ready queue
+            do
+            {
+                pushed = FALSE;
+                if (incomingQ.tail != NULL)
+                {
+                    if (incomingQ.tail->process->arrival <= CPUTime)
+                    {
+                        pcb *temp = pop(&incomingQ);
+                        push(&readyQ, temp, type);
+                        pushed = TRUE;
+                    }
+                }
+            } while (pushed);
+            //check for running process
+            if (activeProcess)
+            {
+                if (runningProcess->runTime == runningProcess->burst)
+                {
+                    activeProcess = FALSE;
+                }
+            }
+            //look for next process
+            if (!activeProcess)
+            {
+                if (readyQ.head != NULL)
+                {
+                    runningProcess = readyQ.tail->process;
+                    totalWaitTime = totalWaitTime + runningProcess->waitTime;
+                    push(&runningQ, pop(&readyQ), FCFS); //use FCFS to preserve ordering when calculating the average wait time
+                    activeProcess = TRUE;
+                    processesRemaining--;
+                }
+            }
+            incWaitTime(&readyQ);
+            runningProcess->runTime++;
+            printf("At CPU time %d:\n\tReady queue:", CPUTime);
+            printQInOrder(&readyQ);
+            printf("\n");
+            printf("\tRunning queue:");
+            printQInOrder(&runningQ);
+            printf("\n\n");
+        }
+        printf("Scheduled queue:");
+        printQInOrder(&runningQ);
+        printf("\n");
+        avgWaitTime = totalWaitTime / numProcesses;
+    }
+    else
+    {
+        avgWaitTime = calcAverageWait(&incomingQ, numProcesses);
+    }
+
+    return avgWaitTime;
+}
+
+void initQueue(queue_t *queue)
+{
+    queue->head = NULL;
+    queue->tail = NULL;
+}
+
+void incWaitTime(queue_t *queue)
+{
+    node_t *pcbToInc = queue->head;
+    while (pcbToInc != NULL)
+    {
+        pcbToInc->process->waitTime++;
+        pcbToInc = pcbToInc->next;
+    }
+}
+
+void printQInOrder(queue_t *queue)
+{
+    if (queue->head != NULL) {
+    printQHelper(queue->head);
+    }
+    else 
+    {
+        printf(" empty");
+    }
+}
+void printQHelper(node_t *node)
+{
+    if (node->next != NULL)
+    {
+        printQHelper(node->next);
+        printf(" %s", node->process->name);
+    }
+    else if (node != NULL)
+    {
+        printf(" %s", node->process->name);
+    } 
+    else
+    {
+        printf (" empty");
+    }
+    
 }
 
 int setSchedulerType(char typeString[])
@@ -358,7 +457,7 @@ void paging(PROCESS processes[], int numProcesses, int numFrames, int pagesize, 
     int temp;
     ENTRY entries[maxPages];
     FRAMEINFO frames[numFrames];
-    printf ("Maximum number of pages: %d\n", maxPages);
+    printf("Maximum number of pages: %d\n", maxPages);
     initializePaging(entries, frames, maxPages, numFrames);
     for (int i = 0; i < numProcesses; i++)
     {
@@ -369,7 +468,6 @@ void paging(PROCESS processes[], int numProcesses, int numFrames, int pagesize, 
         }
     }
 }
-
 
 void initializePaging(ENTRY entries[], FRAMEINFO frames[], int maxPages, int numFrames)
 {
@@ -382,4 +480,3 @@ void initializePaging(ENTRY entries[], FRAMEINFO frames[], int maxPages, int num
         initializeFrame(&frames[i]);
     }
 }
-
